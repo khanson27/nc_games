@@ -23,3 +23,22 @@ describe("GET /api/categories", () => {
       });
   });
 });
+
+describe('GET: /api/reviews/:review_id', () => {
+  test('200: returns a review obj with properties of owner, title, review_id, review_body, designer, review_img_url, category, created_at, votes and a count of all comments with this review_id', ()=>{
+    return request(app).get('/api/reviews/1').expect(200).then((response)=>{
+      expect(response.body.review).toEqual(expect.objectContaining({
+        owner: expect.any(String),
+        title: expect.any(String),
+        review_id: expect.any(Number),
+        review_body: expect.any(String),
+        designer: expect.any(String),
+        review_img_url: expect.any(String),
+        category: expect.any(String),
+        created_at: expect.any(Number),
+        votes: expect.any(Number),
+        comment_count: expect.any(Number);
+      }))
+    })
+  })
+});
