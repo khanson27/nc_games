@@ -6,5 +6,6 @@ const categoryRouter = require("./categories.router");
 const apiRouter = express.Router();
 
 apiRouter.use("/categories", categoryRouter);
+apiRouter.use("/reviews", reviewRouter);
 
 module.exports = apiRouter;
