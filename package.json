@@ -29,5 +29,10 @@
     "express": "^4.17.1",
     "pg": "^8.7.1",
     "pg-format": "^1.0.4"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "jest-sorted"
+    ]
   }
 }
