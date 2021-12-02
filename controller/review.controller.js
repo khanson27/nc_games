@@ -20,9 +20,6 @@ exports.patchReviewByVotes = (req, res, next) => {
   console.log("in controller");
   const { review_id } = req.params;
   const { inc_vote } = req.body;
-  if (inc_vote === undefined) {
-    throw Error("22P02");
-  }
   updateReviewByVotes(review_id, inc_vote)
     .then((result) => {
       res.status(200).send({ review: result });
@@ -39,6 +36,7 @@ exports.getReviews = (req, res, next) => {
     })
     .catch(next);
 };
+
 exports.getCommentsByReviewId = (req, res, next) => {
   console.log("in controller");
   const { review_id } = req.params;

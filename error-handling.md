@@ -39,7 +39,7 @@ Bear in mind, handling bad inputs from clients doesn't necessarily have to lead 
 
 ### GET `/api/categories`
 
--
+-404: spelling mistake
 
 ### GET `/api/users/:username`
 

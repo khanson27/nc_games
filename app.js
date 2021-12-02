@@ -1,5 +1,10 @@
 const express = require("express");
 const db = require("./db/connection");
+const {
+  handleCustomErrors,
+  handlePsqlErrors,
+  handleServerErrors,
+} = require("./errors/error.handler");
 const app = express();
 const apiRouter = require("./router/api.router");
 
@@ -10,14 +15,8 @@ app.use("/", (req, res, next) => {
   res.status(404).send({ msg: "path not found" });
 });
 
-app.use("/api", (err, req, res, next) => {
-  if (err.code === "22P02" || err.error === "22P02") {
-    res.status(400).send({ msg: "bad request" });
-  } else if (err.status && err.msg) {
-    res.status(err.status).send({ msg: err.msg });
-  } else {
-    res.status(500).send({ msg: "internal server error" });
-  }
-});
+app.use(handleCustomErrors);
+app.use(handlePsqlErrors);
+app.use(handleServerErrors);
 
 module.exports = app;

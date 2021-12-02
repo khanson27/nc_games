@@ -21,6 +21,15 @@ describe("GET /api/categories", () => {
           })
         );
         expect(Array.isArray(response.body.categories)).toBe(true);
+        expect(response.body.categories).toHaveLength(4);
+      });
+  });
+  test("404: path not found", () => {
+    return request(app)
+      .get("/api/categoriez")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("path not found");
       });
   });
 });
@@ -52,7 +61,7 @@ describe("GET: /api/reviews/:review_id", () => {
       .get("/api/reviews/40")
       .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("no review for 40");
+        expect(response.body.msg).toBe("no review for review id 40");
       });
   });
   test("400: bad request", () => {
@@ -93,7 +102,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
       .send(updateVote)
       .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("no review for 40");
+        expect(response.body.msg).toBe("no review for review id 40");
       });
   });
   test("400: not found", () => {
@@ -122,10 +131,22 @@ describe("PATCH /api/reviews/:reviewId", () => {
       .send({})
       .expect(400)
       .then((response) => {
-        expect(response.body.review.votes).toBe(5); //don't get this one
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("200: ignores additional keys on request, only updates the votes", () => {
+    const updateVote = { inc_vote: 1, name: "kat" };
+    return request(app)
+      .patch("/api/reviews/2")
+      .send(updateVote)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.review[0].votes).toBe(6);
+        expect(response.body.review[0]).not.toHaveProperty("name");
       });
   });
 });
+
 describe("GET /api/reviews", () => {
   test("200: returns a review array sorted by date in descending order", () => {
     return request(app)
@@ -185,7 +206,7 @@ describe("GET /api/reviews", () => {
   });
   test("200: returns an array sorted by owner ascending which is filtered by the relevant category ", () => {
     return request(app)
-      .get("/api/reviews?sorted_by=owner&order=ASC&category=euro%20game")
+      .get("/api/reviews?sort_by=owner&order=ASC&category=euro%20game")
       .expect(200)
       .then((response) => {
         expect(response.body.reviews).toBeSortedBy("owner", {
@@ -205,6 +226,38 @@ describe("GET /api/reviews", () => {
             comment_count: expect.any(Number),
           })
         );
+      });
+  });
+  test("200: uses a category that exists but no reviews associated with it", () => {
+    request(app)
+      .get("/api/reviews?category=children's%20games")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("no reviews found for this category");
+      });
+  });
+  test.only("404: sortby column does not exist", () => {
+    request(app)
+      .get("/api/reviews?sort_by=bananas")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("not found");
+      });
+  });
+  test("404: order is not ASC or DESC", () => {
+    request(app)
+      .get("/api/reviews?order=bananas")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("not found");
+      });
+  });
+  test("404: category does not exist on the database", () => {
+    request(app)
+      .get("/api/reviews/category=bananas")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("not found");
       });
   });
 });
@@ -253,6 +306,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
       });
   });
 });
+
 describe("DELETE /api/comments/:comment_id", () => {
   test("204: no content returned", () => {
     return request(app)
@@ -264,7 +318,7 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe.only("GET /api", () => {
+describe("GET /api", () => {
   test("200: returns a JSON object which describes all available endpoints", () => {
     return request(app)
       .get("/api")

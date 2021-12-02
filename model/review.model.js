@@ -18,7 +18,7 @@ exports.fetchReviewById = (review_id) => {
       if (!review) {
         return Promise.reject({
           status: 404,
-          msg: `no review for ${review_id}`,
+          msg: `no review for review id ${review_id}`,
         });
       } else {
         return result.rows;
@@ -28,6 +28,9 @@ exports.fetchReviewById = (review_id) => {
 
 exports.updateReviewByVotes = (review_id, inc_vote) => {
   console.log("in model");
+  if (!inc_vote) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  }
   return db
     .query(
       `UPDATE reviews SET votes = votes + $1 WHERE review_id = $2 RETURNING *;`,
@@ -38,7 +41,7 @@ exports.updateReviewByVotes = (review_id, inc_vote) => {
       if (!review) {
         return Promise.reject({
           status: 404,
-          msg: `no review for ${review_id}`,
+          msg: `no review for review id ${review_id}`,
         });
       } else {
         return reviews.rows;
@@ -97,6 +100,12 @@ exports.fetchReviews = ({
         [category]
       )
       .then((reviews) => {
+        if (reviews.rows === 0) {
+          return Promise.reject({
+            status: 404,
+            msg: "no reviews found for this category",
+          });
+        }
         return reviews.rows;
       });
   }
