@@ -95,7 +95,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
         expect(response.body.review[0].votes).toBe(4);
       });
   });
-  test("404: not found", () => {
+  test("404: review_id not found", () => {
     const updateVote = { inc_vote: 1 };
     return request(app)
       .patch("/api/reviews/40")
@@ -105,7 +105,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
         expect(response.body.msg).toBe("no review for review id 40");
       });
   });
-  test("400: not found", () => {
+  test("400: incorrect syntax for review_id", () => {
     const updateVote = { inc_vote: 1 };
     return request(app)
       .patch("/api/reviews/bananas")
@@ -125,7 +125,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
         expect(response.body.msg).toBe("bad request");
       });
   });
-  test("400: bad request", () => {
+  test("400: no body sent to patch review", () => {
     return request(app)
       .patch("/api/reviews/2")
       .send({})
@@ -228,36 +228,36 @@ describe("GET /api/reviews", () => {
         );
       });
   });
-  test("200: uses a category that exists but no reviews associated with it", () => {
-    request(app)
-      .get("/api/reviews?category=children's%20games")
+  test("404: uses a category that exists but no reviews associated with it", () => {
+    return request(app)
+      .get("/api/reviews?category=children''s%20games")
       .expect(404)
       .then((response) => {
         expect(response.body.msg).toBe("no reviews found for this category");
       });
   });
-  test.only("404: sortby column does not exist", () => {
-    request(app)
+  test("400: sortby column does not exist", () => {
+    return request(app)
       .get("/api/reviews?sort_by=bananas")
-      .expect(404)
+      .expect(400)
       .then((response) => {
-        expect(response.body.msg).toBe("not found");
+        expect(response.body.msg).toBe("column does not exist");
       });
   });
-  test("404: order is not ASC or DESC", () => {
-    request(app)
+  test("400: order is not ASC or DESC", () => {
+    return request(app)
       .get("/api/reviews?order=bananas")
-      .expect(404)
+      .expect(400)
       .then((response) => {
-        expect(response.body.msg).toBe("not found");
+        expect(response.body.msg).toBe("bad request");
       });
   });
   test("404: category does not exist on the database", () => {
-    request(app)
-      .get("/api/reviews/category=bananas")
+    return request(app)
+      .get("/api/reviews?category=bananas")
       .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("not found");
+        expect(response.body.msg).toBe("no reviews found for this category");
       });
   });
 });
@@ -277,6 +277,22 @@ describe("GET /api/reviews/:review_id/comments", () => {
             body: expect.any(String),
           })
         );
+      });
+  });
+  test("404: review id not found", () => {
+    return request(app)
+      .get("/api/reviews/90/comments")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("review_id not found");
+      });
+  });
+  test("400: incorrect syntax for review id", () => {
+    return request(app)
+      .get("/api/reviews/bananas/comments")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
       });
   });
 });
@@ -305,6 +321,56 @@ describe("POST /api/reviews/:review_id/comments", () => {
         );
       });
   });
+  test("400: review id syntax incorrect", () => {
+    const commentInput = {
+      username: "mallionaire",
+      body: "Love this game so good!",
+    };
+    return request(app)
+      .post("/api/reviews/bananas/comments")
+      .send(commentInput)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("400: review_id not on parent table", () => {
+    const commentInput = {
+      username: "mallionaire",
+      body: "Love this game so good!",
+    };
+    return request(app)
+      .post("/api/reviews/90/comments")
+      .send(commentInput)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "this key does not exist on parent table"
+        );
+      });
+  });
+  test("400: body empty", () => {
+    return request(app)
+      .post("/api/reviews/2/comments")
+      .send({})
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("400: bad request incorrect type for property", () => {
+    const commentInput = {
+      name: "mallionaire",
+      text: "Love this game so good!",
+    };
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send(commentInput)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
 });
 
 describe("DELETE /api/comments/:comment_id", () => {
@@ -314,6 +380,22 @@ describe("DELETE /api/comments/:comment_id", () => {
       .expect(204)
       .then((response) => {
         expect(response.body).toEqual({});
+      });
+  });
+  test("404: comment to delete is not found", () => {
+    return request(app)
+      .delete("/api/comments/100")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("comment not found");
+      });
+  });
+  test("400: comment id syntax is not the correct type", () => {
+    return request(app)
+      .delete("/api/comments/bananas")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
       });
   });
 });

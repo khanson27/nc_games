@@ -4,9 +4,11 @@
   "description": "bc-nc-games",
   "main": "index.js",
   "scripts": {
+    "seed:prod": "NODE_ENV=production DATABASE_URL=$(heroku config:get DATABASE_URL) npm run seed",
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "node ./db/seeds/run-seed.js",
-    "test": "NODE_ENV=test jest"
+    "test": "NODE_ENV=test jest",
+    "start": "node listen.js"
   },
   "repository": {
     "type": "git",

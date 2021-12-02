@@ -62,15 +62,13 @@ exports.fetchReviews = ({
       "title",
       "review_id",
       "category",
-      "review_img_url",
       "votes",
       "comment_count",
     ].includes(sort_by) &&
     !["ASC", "DESC"].includes(order)
   ) {
-    return Promise.reject({ status: 404, msg: "not found" });
-  }
-  if (category === undefined) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  } else if (category === undefined) {
     return db
       .query(
         `SELECT
@@ -100,7 +98,7 @@ exports.fetchReviews = ({
         [category]
       )
       .then((reviews) => {
-        if (reviews.rows === 0) {
+        if (reviews.rows.length === 0) {
           return Promise.reject({
             status: 404,
             msg: "no reviews found for this category",
@@ -121,6 +119,9 @@ exports.fetchCommentsByReviewId = (review_id) => {
       [review_id]
     )
     .then((result) => {
+      if (result.rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "review_id not found" });
+      }
       return result.rows;
     });
 };
@@ -128,6 +129,9 @@ exports.fetchCommentsByReviewId = (review_id) => {
 exports.insertComment = (postBody, review_id) => {
   console.log("in model");
   const { username, body } = postBody;
+  if (!username || !body) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  }
   return db
     .query(
       `INSERT INTO comments(author, body, review_id) 
@@ -137,6 +141,9 @@ exports.insertComment = (postBody, review_id) => {
       [username, body, review_id]
     )
     .then((result) => {
+      if (result.rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "review_id not found" });
+      }
       return result.rows;
     });
 };
