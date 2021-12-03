@@ -7,7 +7,6 @@ const {
 } = require("../model/review.model");
 
 exports.getReviewById = (req, res, next) => {
-  console.log("in controller");
   const { review_id } = req.params;
   fetchReviewById(review_id)
     .then((review) => {
@@ -17,10 +16,9 @@ exports.getReviewById = (req, res, next) => {
 };
 
 exports.patchReviewByVotes = (req, res, next) => {
-  console.log("in controller");
   const { review_id } = req.params;
-  const { inc_vote } = req.body;
-  updateReviewByVotes(review_id, inc_vote)
+  const { inc_votes } = req.body;
+  updateReviewByVotes(review_id, inc_votes)
     .then((result) => {
       res.status(200).send({ review: result });
     })
@@ -28,7 +26,6 @@ exports.patchReviewByVotes = (req, res, next) => {
 };
 
 exports.getReviews = (req, res, next) => {
-  console.log("in controller");
   const queryParams = req.query;
   fetchReviews(queryParams)
     .then((reviews) => {
@@ -38,7 +35,6 @@ exports.getReviews = (req, res, next) => {
 };
 
 exports.getCommentsByReviewId = (req, res, next) => {
-  console.log("in controller");
   const { review_id } = req.params;
   fetchCommentsByReviewId(review_id)
     .then((comments) => {
@@ -48,7 +44,6 @@ exports.getCommentsByReviewId = (req, res, next) => {
 };
 
 exports.postComment = (req, res, next) => {
-  console.log("in controller");
   const { review_id } = req.params;
   const postBody = req.body;
   insertComment(postBody, review_id)

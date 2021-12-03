@@ -40,7 +40,7 @@ describe("GET: /api/reviews/:review_id", () => {
       .get("/api/reviews/3")
       .expect(200)
       .then((response) => {
-        expect(response.body.review[0]).toEqual(
+        expect(response.body.review).toEqual(
           expect.objectContaining({
             owner: expect.any(String),
             title: expect.any(String),
@@ -76,27 +76,27 @@ describe("GET: /api/reviews/:review_id", () => {
 
 describe("PATCH /api/reviews/:reviewId", () => {
   test("200: response has increments vote count", () => {
-    const updateVote = { inc_vote: 1 };
+    const updateVote = { inc_votes: 1 };
     return request(app)
       .patch("/api/reviews/3")
       .send(updateVote)
       .expect(200)
       .then((response) => {
-        expect(response.body.review[0].votes).toBe(6);
+        expect(response.body.review.votes).toBe(6);
       });
   });
   test("200: response decrements the current review", () => {
-    const updateVote = { inc_vote: -1 };
+    const updateVote = { inc_votes: -1 };
     return request(app)
       .patch("/api/reviews/2")
       .send(updateVote)
       .expect(200)
       .then((response) => {
-        expect(response.body.review[0].votes).toBe(4);
+        expect(response.body.review.votes).toBe(4);
       });
   });
   test("404: review_id not found", () => {
-    const updateVote = { inc_vote: 1 };
+    const updateVote = { inc_votes: 1 };
     return request(app)
       .patch("/api/reviews/40")
       .send(updateVote)
@@ -106,7 +106,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
       });
   });
   test("400: incorrect syntax for review_id", () => {
-    const updateVote = { inc_vote: 1 };
+    const updateVote = { inc_votes: 1 };
     return request(app)
       .patch("/api/reviews/bananas")
       .send(updateVote)
@@ -116,7 +116,7 @@ describe("PATCH /api/reviews/:reviewId", () => {
       });
   });
   test("400: bad request incorrect type for property", () => {
-    const updateVote = { inc_vote: "banananas" };
+    const updateVote = { inc_votes: "banananas" };
     return request(app)
       .patch("/api/reviews/1")
       .send(updateVote)
@@ -125,24 +125,24 @@ describe("PATCH /api/reviews/:reviewId", () => {
         expect(response.body.msg).toBe("bad request");
       });
   });
-  test("400: no body sent to patch review", () => {
+  test("200: no body sent to patch review", () => {
     return request(app)
       .patch("/api/reviews/2")
       .send({})
-      .expect(400)
+      .expect(200)
       .then((response) => {
-        expect(response.body.msg).toBe("bad request");
+        expect(response.body.review.votes).toBe(5);
       });
   });
   test("200: ignores additional keys on request, only updates the votes", () => {
-    const updateVote = { inc_vote: 1, name: "kat" };
+    const updateVote = { inc_votes: 1, name: "kat" };
     return request(app)
       .patch("/api/reviews/2")
       .send(updateVote)
       .expect(200)
       .then((response) => {
-        expect(response.body.review[0].votes).toBe(6);
-        expect(response.body.review[0]).not.toHaveProperty("name");
+        expect(response.body.review.votes).toBe(6);
+        expect(response.body.review).not.toHaveProperty("name");
       });
   });
 });
@@ -188,7 +188,7 @@ describe("GET /api/reviews", () => {
         expect(response.body.reviews).toBeSorted("created_at", {
           descending: true,
         });
-        expect(response.body.reviews[0]).toEqual(
+        expect(response.body.reviews).toEqual(
           expect.objectContaining({
             owner: expect.any(String),
             title: expect.any(String),
@@ -212,7 +212,7 @@ describe("GET /api/reviews", () => {
         expect(response.body.reviews).toBeSortedBy("owner", {
           ascending: true,
         });
-        expect(response.body.reviews[0]).toEqual(
+        expect(response.body.reviews).toEqual(
           expect.objectContaining({
             owner: expect.any(String),
             title: expect.any(String),
@@ -228,10 +228,10 @@ describe("GET /api/reviews", () => {
         );
       });
   });
-  test("404: uses a category that exists but no reviews associated with it", () => {
+  test("200: uses a category that exists but no reviews associated with it", () => {
     return request(app)
       .get("/api/reviews?category=children''s%20games")
-      .expect(404)
+      .expect(200)
       .then((response) => {
         expect(response.body.msg).toBe("no reviews found for this category");
       });
@@ -308,7 +308,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .send(commentInput)
       .expect(201)
       .then((response) => {
-        expect(response.body.comment[0]).toEqual(
+        expect(response.body.comment).toEqual(
           expect.objectContaining({
             comment_id: 7,
             author: "mallionaire",
@@ -333,7 +333,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
         expect(response.body.msg).toBe("bad request");
       });
   });
-  test("400: review_id not on parent table", () => {
+  test("404: invalid review_id", () => {
     const commentInput = {
       username: "mallionaire",
       body: "Love this game so good!",
@@ -341,11 +341,9 @@ describe("POST /api/reviews/:review_id/comments", () => {
     return request(app)
       .post("/api/reviews/90/comments")
       .send(commentInput)
-      .expect(400)
+      .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe(
-          "this key does not exist on parent table"
-        );
+        expect(response.body.msg).toBe("non-existent id");
       });
   });
   test("400: body empty", () => {
@@ -368,6 +366,19 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test.only("404: username does not exist", () => {
+    const commentInput = {
+      username: "mallionaire",
+      text: "Love this game so good!",
+    };
+    return request(app)
+      .post("/api/reviews/2/comments")
+      .send(commentInput)
+      .expect(404)
+      .expect((response) => {
+        expect(response.body.msg).toBe("");
       });
   });
 });

@@ -4,7 +4,6 @@ exports.handleCustomErrors = (err, req, res, next) => {
   } else next(err);
 };
 exports.handlePsqlErrors = (err, req, res, next) => {
-  console.log("psql error");
   if (err.code === "22P02") {
     res.status(400).send({ msg: "bad request" });
   } else if (err.code === "42601") {
@@ -12,7 +11,7 @@ exports.handlePsqlErrors = (err, req, res, next) => {
   } else if (err.code === "42703") {
     res.status(400).send({ msg: "column does not exist" });
   } else if (err.code === "23503") {
-    res.status(400).send({ msg: "this key does not exist on parent table" });
+    res.status(404).send({ msg: "non-existent id" });
   } else next(err);
 };
 

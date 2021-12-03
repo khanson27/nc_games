@@ -1,7 +1,6 @@
 const db = require("../db/connection");
 
 exports.fetchReviewById = (review_id) => {
-  console.log("in model");
   return db
     .query(
       `SELECT
@@ -21,20 +20,22 @@ exports.fetchReviewById = (review_id) => {
           msg: `no review for review id ${review_id}`,
         });
       } else {
-        return result.rows;
+        return result.rows[0];
       }
     });
 };
 
-exports.updateReviewByVotes = (review_id, inc_vote) => {
-  console.log("in model");
-  if (!inc_vote) {
+exports.updateReviewByVotes = (review_id, inc_votes = 0) => {
+  if (!inc_votes === "number") {
     return Promise.reject({ status: 400, msg: "bad request" });
   }
   return db
     .query(
-      `UPDATE reviews SET votes = votes + $1 WHERE review_id = $2 RETURNING *;`,
-      [inc_vote, review_id]
+      `UPDATE reviews 
+      SET votes = votes + $1 
+      WHERE review_id = $2 
+      RETURNING *;`,
+      [inc_votes, review_id]
     )
     .then((reviews) => {
       const review = reviews.rows[0];
@@ -44,7 +45,8 @@ exports.updateReviewByVotes = (review_id, inc_vote) => {
           msg: `no review for review id ${review_id}`,
         });
       } else {
-        return reviews.rows;
+        console.log(reviews.rows);
+        return reviews.rows[0];
       }
     });
 };
@@ -54,7 +56,6 @@ exports.fetchReviews = ({
   order = "DESC",
   category,
 }) => {
-  console.log("in model");
   if (
     ![
       "created_at",
@@ -110,7 +111,6 @@ exports.fetchReviews = ({
 };
 
 exports.fetchCommentsByReviewId = (review_id) => {
-  console.log("in model");
   return db
     .query(
       `SELECT comments.* 
@@ -127,7 +127,6 @@ exports.fetchCommentsByReviewId = (review_id) => {
 };
 
 exports.insertComment = (postBody, review_id) => {
-  console.log("in model");
   const { username, body } = postBody;
   if (!username || !body) {
     return Promise.reject({ status: 400, msg: "bad request" });
@@ -144,6 +143,6 @@ exports.insertComment = (postBody, review_id) => {
       if (result.rows.length === 0) {
         return Promise.reject({ status: 404, msg: "review_id not found" });
       }
-      return result.rows;
+      return result.rows[0];
     });
 };

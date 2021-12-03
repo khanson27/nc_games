@@ -1,7 +1,6 @@
 const db = require("../db/connection");
 
 exports.removeComment = (comment_id) => {
-  console.log("in model");
   return db
     .query(`SELECT * FROM comments WHERE comment_id = $1`, [comment_id])
     .then((result) => {
@@ -22,7 +21,6 @@ exports.removeComment = (comment_id) => {
 };
 
 exports.updateCommentVotes = (comment_id, inc_votes) => {
-  console.log("in model");
   if (!inc_votes) {
     return Promise.reject({ status: 400, msg: "no input for votes" });
   }

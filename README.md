@@ -50,6 +50,26 @@ npm install
 
 ---
 
+## .ENV files
+
+.Env files are essential for running the database locally. An example has been created .env.example
+
+This format should be followed for a .env.test and a .env.development file respectively.
+
+### .env.development
+
+This should include `PGDATABASE=nc_games`
+
+If you are on Ubuntu you will also need to include the `PGPASSWORD=your_password`
+
+### .env.test
+
+This should include `PGDATABASE=nc_games_test If you are on Ubuntu you will also need to include the `PGPASSWORD=your_password`
+
+**The .env files have already been included in the gitignore file so these will not be uploaded to github.**
+
+---
+
 ### Seeding the local database
 
 In order to seed the local database with the development data you need to first run:
@@ -97,15 +117,3 @@ npm test
 ```
 
 ---
-
-## .ENV files
-
-.Env files are essential for running the database locally. An example has been created .env.example
-
-This format should be followed for a .env.test and a .env.development file respectively.
-
-This should include `PGDATABASE=your_database`
-
-If you are on Ubuntu you will also need to include the `PGPASSWORD=your_password`
-
-The .env files have already been included in the gitignore file so these will not be uploaded to github.
