@@ -308,7 +308,6 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .send(commentInput)
       .expect(201)
       .then((response) => {
-        console.log(response.body.comment[0]);
         expect(response.body.comment[0]).toEqual(
           expect.objectContaining({
             comment_id: 7,
@@ -407,6 +406,139 @@ describe("GET /api", () => {
       .expect(200)
       .then((response) => {
         expect(response.body).toEqual({ endpoints_JSON: endpoints });
+      });
+  });
+});
+
+describe("GET /api/users", () => {
+  test("200: returns an array of users", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        expect(Array.isArray(response.body.users)).toBe(true);
+        expect(response.body.users[0]).toEqual(
+          expect.objectContaining({
+            username: expect.any(String),
+          })
+        );
+      });
+  });
+  test("404: path not found", () => {
+    return request(app)
+      .get("/api/userz")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("path not found");
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: returns an object for the requested user", () => {
+    return request(app)
+      .get("/api/users/mallionaire")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.user).toEqual(
+          expect.objectContaining({
+            username: "mallionaire",
+            avatar_url:
+              "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+            name: "haz",
+          })
+        );
+      });
+  });
+  test("404: user not found", () => {
+    return request(app)
+      .get("/api/users/kat")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("user not found");
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comments_id", () => {
+  test("200: increments the vote of the comment with the related comment id and responds with the related comment", () => {
+    const updateVotes = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(updateVotes)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comment.votes).toBe(17);
+      });
+  });
+  test("200: decrements the vote of the related comment", () => {
+    const updateVotes = { inc_votes: -1 };
+    return request(app)
+      .patch("/api/comments/2")
+      .send(updateVotes)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comment.votes).toBe(12);
+      });
+  });
+  test("404: comment_id does not exist", () => {
+    const updateVotes = { inc_votes: 4 };
+    return request(app)
+      .patch("/api/comments/90")
+      .send(updateVotes)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("comment does not exist");
+      });
+  });
+  test("404: misspelling of comments in path", () => {
+    const updateVotes = { inc_votes: 4 };
+    return request(app)
+      .patch("/api/commentz/2")
+      .send(updateVotes)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("path not found");
+      });
+  });
+  test("400: comment_id has incorrect syntax", () => {
+    const updateVotes = { inc_votes: 4 };
+    return request(app)
+      .patch("/api/comments/bananas")
+      .send(updateVotes)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("400: inc_votes input has incorrect syntax", () => {
+    const updateVotes = { inc_votes: "banananas" };
+    return request(app)
+      .patch("/api/comments/2")
+      .send(updateVotes)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("400: input is blank", () => {
+    return request(app)
+      .patch("/api/comments/3")
+      .send({})
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("no input for votes");
+      });
+  });
+  test("200: if input has additional keys, only the votes key is incremented and other keys are ignored", () => {
+    const updateVotes = { inc_votes: 1, author: "kat" };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(updateVotes)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comment.votes).toBe(17);
+        expect(response.body.comment.author).toBe("bainesface");
       });
   });
 });

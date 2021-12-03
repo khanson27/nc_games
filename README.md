@@ -25,6 +25,8 @@ You will need to clone the repository from my github using the command line. You
 git clone https://github.com/khanson27/nc_games.git
 ```
 
+---
+
 ## What dependencies do I need in order to run this code?
 
 ### Required dependencies are:
@@ -39,6 +41,14 @@ In order to install these you will need to use
 ```
 npm install
 ```
+
+### Dev Dependencies used:
+
+- jest
+- jest-sorted
+- supertest
+
+---
 
 ### Seeding the local database
 
@@ -55,6 +65,8 @@ npm run seed
 ```
 
 Your development database will be seeded with data, this can checked by accessing psql which will show the database nc_games seeded.
+
+---
 
 ### To run tests
 
@@ -83,6 +95,8 @@ To run the tests use the script:
 ```
 npm test
 ```
+
+---
 
 ## .ENV files
 
