@@ -10,6 +10,9 @@ exports.fetchUsers = () => {
 };
 
 exports.fetchUserByUsername = (username) => {
+  if (username.length > 50) {
+    return Promise.reject({ status: 400, msg: "invalid username" });
+  }
   return db
     .query(`SELECT * FROM users WHERE username = $1;`, [username])
     .then((result) => {

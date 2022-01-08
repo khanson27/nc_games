@@ -5,6 +5,7 @@ const {
   fetchCommentsByReviewId,
   insertComment,
 } = require("../model/review.model");
+const { fetchCategories } = require("../model/category.model");
 
 exports.getReviewById = (req, res, next) => {
   const { review_id } = req.params;
@@ -27,9 +28,9 @@ exports.patchReviewByVotes = (req, res, next) => {
 
 exports.getReviews = (req, res, next) => {
   const queryParams = req.query;
-  fetchReviews(queryParams)
-    .then((reviews) => {
-      res.status(200).send({ reviews });
+  Promise.all([fetchReviews(queryParams), fetchCategories(queryParams)])
+    .then((response) => {
+      res.status(200).send({ reviews: response[0] });
     })
     .catch(next);
 };

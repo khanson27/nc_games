@@ -7,13 +7,12 @@ exports.deleteComment = (req, res, next) => {
   const { comment_id } = req.params;
   removeComment(comment_id)
     .then((comment) => {
-      res.status(204);
+      res.status(204).send({});
     })
     .catch(next);
 };
 
 exports.patchCommentVotes = (req, res, next) => {
-  console.log("in controller");
   const { comment_id } = req.params;
   const { inc_votes } = req.body;
   updateCommentVotes(comment_id, inc_votes)

@@ -188,7 +188,7 @@ describe("GET /api/reviews", () => {
         expect(response.body.reviews).toBeSorted("created_at", {
           descending: true,
         });
-        expect(response.body.reviews).toEqual(
+        expect(response.body.reviews[0]).toEqual(
           expect.objectContaining({
             owner: expect.any(String),
             title: expect.any(String),
@@ -212,7 +212,7 @@ describe("GET /api/reviews", () => {
         expect(response.body.reviews).toBeSortedBy("owner", {
           ascending: true,
         });
-        expect(response.body.reviews).toEqual(
+        expect(response.body.reviews[0]).toEqual(
           expect.objectContaining({
             owner: expect.any(String),
             title: expect.any(String),
@@ -230,10 +230,11 @@ describe("GET /api/reviews", () => {
   });
   test("200: uses a category that exists but no reviews associated with it", () => {
     return request(app)
-      .get("/api/reviews?category=children''s%20games")
+      .get("/api/reviews?category=children's%20games")
       .expect(200)
       .then((response) => {
-        expect(response.body.msg).toBe("no reviews found for this category");
+        expect(response.body.reviews).toHaveLength(0);
+        expect(typeof response.body.reviews).toBe("object");
       });
   });
   test("400: sortby column does not exist", () => {
@@ -249,7 +250,7 @@ describe("GET /api/reviews", () => {
       .get("/api/reviews?order=bananas")
       .expect(400)
       .then((response) => {
-        expect(response.body.msg).toBe("bad request");
+        expect(response.body.msg).toBe("column does not exist");
       });
   });
   test("404: category does not exist on the database", () => {
@@ -257,7 +258,7 @@ describe("GET /api/reviews", () => {
       .get("/api/reviews?category=bananas")
       .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("no reviews found for this category");
+        expect(response.body.msg).toBe("category not found");
       });
   });
 });
@@ -293,6 +294,14 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe("bad request");
+      });
+  });
+  test("200: valid id but no comments, responds with empty array", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comments).toHaveLength(0);
       });
   });
 });
@@ -368,17 +377,17 @@ describe("POST /api/reviews/:review_id/comments", () => {
         expect(response.body.msg).toBe("bad request");
       });
   });
-  test.only("404: username does not exist", () => {
+  test("404: username does not exist", () => {
     const commentInput = {
-      username: "mallionaire",
-      text: "Love this game so good!",
+      username: "kat",
+      body: "Love this game so good!",
     };
     return request(app)
       .post("/api/reviews/2/comments")
       .send(commentInput)
       .expect(404)
       .expect((response) => {
-        expect(response.body.msg).toBe("");
+        expect(response.body.msg).toBe("user not found");
       });
   });
 });
@@ -467,6 +476,15 @@ describe("GET /api/users/:username", () => {
       .expect(404)
       .then((response) => {
         expect(response.body.msg).toBe("user not found");
+      });
+  });
+
+  test("400: username is invalid", () => {
+    return request(app)
+      .get("/api/users/mJpY7DW8lFedsV55zphomVjo0FAmHPp4DLO6SKHGkcWrgwdIcjV")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("invalid username");
       });
   });
 });

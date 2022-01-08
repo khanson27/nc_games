@@ -14,7 +14,7 @@ exports.removeComment = (comment_id) => {
             [comment_id]
           )
           .then((result) => {
-            return result.rows[0];
+            return result.rows;
           });
       }
     });
