@@ -7,7 +7,8 @@ const {
 } = require("./errors/error.handler");
 const app = express();
 const apiRouter = require("./router/api.router");
-
+const cors = require("cors");
+app.use(cors());
 app.use(express.json());
 
 app.use("/api", apiRouter);
