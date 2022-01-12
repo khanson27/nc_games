@@ -48,7 +48,7 @@
       ]
     }
   },
-  "PATCH /api/reviews/review/:review_id": {
+  "PATCH /api/reviews/:review_id": {
     "description": "updates the vote parameter of the relevant review and returns the updated review",
     "exampleInput": { "inc_votes": 1 },
     "exampleResponse": {
